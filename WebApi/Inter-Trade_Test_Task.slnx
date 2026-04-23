@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Inter-Trade_Test_Task.BL/Inter-Trade_Test_Task.BL.csproj" />
+  <Project Path="Inter-Trade_Test_Task.DAL/Inter-Trade_Test_Task.DAL.csproj" />
+  <Project Path="WebApi/Inter-Trade_Test_Task.WebApi.csproj" />
+</Solution>

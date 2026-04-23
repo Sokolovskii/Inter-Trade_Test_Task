@@ -8,6 +8,6 @@ namespace Inter_Trade_Test_Task.DAL.Repository
         Task UpdateAsync(TEntity dto);
         Task RemoveAsync(long id);
         Task<TEntity> GetById(long id);
-        Task<IEnumerable<TEntity>> Get();
+        Task<List<TEntity>> Get();
     }
 }

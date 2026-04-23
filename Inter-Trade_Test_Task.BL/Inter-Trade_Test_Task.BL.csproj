@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Inter-Trade_Test_Task.DAL\Inter-Trade_Test_Task.DAL.csproj" />
-    <ProjectReference Include="..\Inter-Trade_Test_Task.WebApi\Inter-Trade_Test_Task.WebApi.csproj" />
   </ItemGroup>
 
 </Project>

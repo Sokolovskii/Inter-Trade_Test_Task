@@ -11,4 +11,12 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.7" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Endpoints\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Inter-Trade_Test_Task.BL\Inter-Trade_Test_Task.BL.csproj" />
+  </ItemGroup>
+
 </Project>

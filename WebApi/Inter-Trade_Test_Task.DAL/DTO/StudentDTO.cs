@@ -2,7 +2,7 @@
 {
     public class StudentDTO : BaseDtoEntity
     {
-        public long Classid { get; set; }
+        public long ClassId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public DateTime BirthDate { get; set; }

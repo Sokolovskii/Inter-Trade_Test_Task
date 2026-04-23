@@ -1,9 +1,9 @@
-﻿using SchoolApiDto = Inter_Trade_Test_Task.WebApi.ApiDTO.SchoolDTO;
-using SchoolEntityDto = Inter_Trade_Test_Task.DAL.DTO.SchoolDTO;
+﻿using Inter_Trade_Test_Task.BL.ApiDTO;
+using Inter_Trade_Test_Task.DAL.DTO;
 
 namespace Inter_Trade_Test_Task.BL.Models
 {
-    public class SchoolModel : IModel<SchoolEntityDto, SchoolApiDto>
+    public class SchoolModel : IModel<SchoolDTO, SchoolApiDTO>
     {
         public long Id { get; set; }
         public string Name { get; set; }
@@ -20,23 +20,23 @@ namespace Inter_Trade_Test_Task.BL.Models
                 Address != null && Address != default;
         }
 
-        public void FillModelFromDTO(SchoolEntityDto dto)
+        public void FillModelFromDTO(SchoolDTO dto)
         {
             Id = dto.Id;
             Name = dto.Name;
             Address = dto.Address;
         }
 
-        public void FillModelFromDTO(SchoolApiDto dto)
+        public void FillModelFromDTO(SchoolApiDTO dto)
         {
             Id = dto.Id;
             Name = dto.Name;
             Address = dto.Address;
         }
 
-        public SchoolApiDto ModelToAPI()
+        public SchoolApiDTO ModelToAPI()
         {
-            return new SchoolApiDto()
+            return new SchoolApiDTO()
             {
                 Id = Id,
                 Name = Name,
@@ -44,9 +44,9 @@ namespace Inter_Trade_Test_Task.BL.Models
             };
         }
 
-        public SchoolEntityDto ModelToDTO()
+        public SchoolDTO ModelToDTO()
         {
-            return new SchoolEntityDto()
+            return new SchoolDTO()
             {
                 Id = Id,
                 Address = Address,

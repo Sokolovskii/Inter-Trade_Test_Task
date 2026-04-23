@@ -3,7 +3,7 @@ using Inter_Trade_Test_Task.DAL.DTO;
 
 namespace Inter_Trade_Test_Task.BL.Service
 {
-    public interface IService<TModel, TApiDto> where TModel : IModel<IDtoEntity, TApiDto>
+    public interface IService<TModel, TApiDto>
     {
         public  void Insert(TApiDto dto);
         public void Update(TApiDto dto);

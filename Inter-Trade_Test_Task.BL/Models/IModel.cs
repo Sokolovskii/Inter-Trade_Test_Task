@@ -10,6 +10,6 @@ namespace Inter_Trade_Test_Task.BL.Models
         public void FillModelFromDTO(TDtoEntity dto);
         public void FillModelFromDTO(TApiDTO dto);
 
-        public bool IsValid();
+        public bool IsValid(bool IsInsertion);
     }
 }

@@ -14,11 +14,9 @@ namespace Inter_Trade_Test_Task.DAL.Repository
             {
                 using (var connection = DBConfig.GetConnection())
                 {
-                    var transaction = connection.BeginTransaction();
                     var command = QueryConstructor.GetCommand(dto, RequestTypes.Insert);
                     command.Connection = connection;
                     command.ExecuteNonQuery();
-                    transaction.Commit();
                     connection.Close();
                 }
                 return;
@@ -31,7 +29,6 @@ namespace Inter_Trade_Test_Task.DAL.Repository
             {
                 using (var connection = DBConfig.GetConnection())
                 {
-                    var transaction = connection.BeginTransaction();
                     var result = new List<TEntity>();
                     var command = QueryConstructor.GetCommand(new TEntity() { Id = 0 }, RequestTypes.GetAll);
                     SQLiteDataAdapter adapter = new SQLiteDataAdapter(command.CommandText, connection);
@@ -41,7 +38,6 @@ namespace Inter_Trade_Test_Task.DAL.Repository
                     {
                         result.Add(GetDtoFromRow(item));
                     }
-                    transaction.Commit();
                     return result;
                 }
             });
@@ -53,15 +49,22 @@ namespace Inter_Trade_Test_Task.DAL.Repository
             {
                 using (var connection = DBConfig.GetConnection())
                 {
-                    var transaction = connection.BeginTransaction();
-                    var command = QueryConstructor.GetCommand(new TEntity() { Id = id }, RequestTypes.Get);
-                    var data = new DataTable();
-                    SQLiteDataAdapter adapter = new SQLiteDataAdapter(command.CommandText, connection);
-                    adapter.Fill(data);
-                    transaction.Commit();
-                    var result = GetDtoFromRow(data.Select().FirstOrDefault());
-                    connection.Close();
-                    return result;
+                    try
+                    {
+                        var command = QueryConstructor.GetCommand(new TEntity() { Id = id }, RequestTypes.Get);
+                        var data = new DataTable();
+                        SQLiteDataAdapter adapter = new SQLiteDataAdapter(command.CommandText, connection);
+                        adapter.Fill(data);
+                        var result = GetDtoFromRow(data.Select().FirstOrDefault());
+                        connection.Close();
+                        if (result == null) throw new FileNotFoundException($"Запись с идентификатором {id} не найдена");
+                        return result;
+                    }
+                    catch (Exception ex) 
+                    {
+                        throw new InvalidOperationException(ex.Message);
+                    }
+                    
                 }
             });
         }
@@ -72,11 +75,9 @@ namespace Inter_Trade_Test_Task.DAL.Repository
             {
                 using (var connection = DBConfig.GetConnection())
                 {
-                    var transaction = connection.BeginTransaction();
                     var command = QueryConstructor.GetCommand(new TEntity() { Id = id }, RequestTypes.Delete);
                     command.Connection = connection;
                     command.ExecuteNonQuery();
-                    transaction.Commit();
                     connection.Close();
                     return;
                 }
@@ -100,12 +101,9 @@ namespace Inter_Trade_Test_Task.DAL.Repository
                             entityProp.SetValue(entityForUpdate, entityProp.GetValue(dto));
                         }
                     }
-
-                    var transaction = connection.BeginTransaction();
                     var command = QueryConstructor.GetCommand(entityForUpdate, RequestTypes.Update);
                     command.Connection = connection;
                     command.ExecuteNonQuery();
-                    transaction.Commit();
                     connection.Close();
                     return;
                 }

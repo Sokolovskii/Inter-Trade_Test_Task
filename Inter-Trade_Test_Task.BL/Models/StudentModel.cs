@@ -12,9 +12,9 @@ namespace Inter_Trade_Test_Task.BL.Models
         public long ClassId { get; set; }
         public StudentModel(){ }
 
-        public bool IsValid()
+        public bool IsValid(bool IsInsertion)
         {
-            return Id > 0 &&
+            return (IsInsertion || Id > 0) &&
                 FirstName != null && FirstName != string.Empty &&
                 LastName != null && LastName != string.Empty &&
                 BirthDate != default &&

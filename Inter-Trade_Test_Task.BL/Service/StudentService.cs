@@ -12,9 +12,9 @@ namespace Inter_Trade_Test_Task.BL.Service
         {
             _repo = repo;
         }
-        public void Delete(long id)
+        public async Task Delete(long id)
         {
-            if (id > 0) _repo.RemoveAsync(id);
+            if (id > 0) await _repo.RemoveAsync(id);
             else throw new ArgumentException("Идентификатор записи должен быть больше 0");
         }
 
@@ -22,12 +22,11 @@ namespace Inter_Trade_Test_Task.BL.Service
         {
             var dtos = await _repo.Get();
             return [.. dtos.Select(e=>
-            {
-                var model = new StudentModel();
-                model.FillModelFromDTO(e);
-                return model.ModelToAPI();
-            })];
-
+                {
+                    var model = new StudentModel();
+                    model.FillModelFromDTO(e);
+                    return model.ModelToAPI();
+                })];
         }
 
         public async Task<StudentApiDTO> GetById(long id)
@@ -39,25 +38,20 @@ namespace Inter_Trade_Test_Task.BL.Service
             return model.ModelToAPI();
         }
 
-        public void Insert(StudentApiDTO dto)
+        public async Task Insert(StudentApiDTO dto)
+        {
+                var model = new StudentModel();
+                model.FillModelFromDTO(dto);
+                if (!model.IsValid(true)) throw new ArgumentException("Запись содержит отсутствующие поля, либо ее идентификатор меньше или равен 0");
+                await _repo.InsertAsync(model.ModelToDTO());
+        }
+
+        public async Task Update(StudentApiDTO dto)
         {
             var model = new StudentModel();
             model.FillModelFromDTO(dto);
-            if (!model.IsValid()) throw new ArgumentException("Запись содержит отсутствующие поля, либо ее идентификатор меньше или равен 0");
-            _repo.InsertAsync(model.ModelToDTO());
-        }
-
-        public void Update(StudentApiDTO dto)
-        {
-            var model = new StudentModel();
-            model.FillModelFromDTO(dto);
-            if (!model.IsValid()) throw new ArgumentException("Запись содержит отсутствующие поля, либо ее идентификатор меньше или равен 0");
-            _repo.UpdateAsync(model.ModelToDTO());
-        }
-
-        public IService<IModel<StudentDTO, StudentApiDTO>, StudentApiDTO> GetService()
-        {
-            return (IService<IModel<StudentDTO, StudentApiDTO>, StudentApiDTO>)this;
+            if (!model.IsValid(false)) throw new ArgumentException("Запись содержит отсутствующие поля, либо ее идентификатор меньше или равен 0");
+            await _repo.UpdateAsync(model.ModelToDTO());
         }
     }
 }

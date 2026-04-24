@@ -32,7 +32,15 @@ namespace Inter_Trade_Test_Task.DAL.DBL
                     foreach (var property in typeProperties)
                     {
                         builder.Append($"{property.Name}");
-                        argString += property.PropertyType == typeof(string) ? $"'{property.GetValue(entity)}'" : property.GetValue(entity);
+                        if (property.PropertyType == typeof(DateTime))
+                        {
+                            argString += $"'{DateTime.Parse(property.GetValue(entity).ToString()).ToString("yyyy-MM-dd")}'";
+                        }
+                        else
+                        {
+                            argString += property.PropertyType == typeof(string) ? $"'{property.GetValue(entity)}'" : property.GetValue(entity);
+                        }
+                            
                         if (property != typeProperties.Last())
                         {
                             builder.Append(',');
@@ -51,9 +59,16 @@ namespace Inter_Trade_Test_Task.DAL.DBL
                     foreach (var property in typeProperties)
                     {
                         var propValue = property.GetValue(entity);
-                        if (propValue != null || propValue != default)
+                        if (IsPropValid(property, propValue))
                         {
-                            builder.Append($"{property.Name} = {(property.PropertyType == typeof(string) ? $"'{property.GetValue(entity)}'" : property.GetValue(entity))},");
+                            if(property.PropertyType == typeof(DateTime))
+                            {
+                                builder.Append($"{property.Name} = '{DateTime.Parse(propValue.ToString()).ToString("yyyy-MM-dd")}',");
+                            }
+                            else
+                            {
+                                builder.Append($"{property.Name} = {((property.PropertyType == typeof(string)) ? $"'{property.GetValue(entity)}'" : property.GetValue(entity))},");
+                            }
                         }
                     }
                     builder.Remove(builder.Length - 1, 1);
@@ -75,6 +90,14 @@ namespace Inter_Trade_Test_Task.DAL.DBL
             }
 
             return command;
+        }
+
+        private static bool IsPropValid(PropertyInfo prop, object propValue)
+        {
+            if (prop.PropertyType == typeof(long)) return (long)propValue != 0;
+            if (prop.PropertyType == typeof(string)) return (string)propValue != null && (string)propValue != string.Empty;
+            if (prop.PropertyType == typeof(DateTime)) return (DateTime)propValue != null && (DateTime)propValue != DateTime.MinValue;
+            return false;
         }
     }
 

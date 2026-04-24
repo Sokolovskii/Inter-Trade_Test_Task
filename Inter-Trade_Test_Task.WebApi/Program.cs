@@ -4,6 +4,7 @@ using Inter_Trade_Test_Task.BL.Service;
 using Inter_Trade_Test_Task.DAL.DTO;
 using Inter_Trade_Test_Task.DAL.Repository;
 using Inter_Trade_Test_Task.WebApi.Endpoints;
+using Inter_Trade_Test_Task.WebApi.Middleware;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -13,7 +14,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
-
 builder.Services.AddScoped<IAsyncRepository<ClassDTO>, AsyncRepository<ClassDTO>>();
 builder.Services.AddScoped<IAsyncRepository<SchoolDTO>, AsyncRepository<SchoolDTO>>();
 builder.Services.AddScoped<IAsyncRepository<StudentDTO>, AsyncRepository<StudentDTO>>();
@@ -35,7 +35,7 @@ if (app.Environment.IsDevelopment())
         //options.RoutePrefix = string.Empty; // Устанавливает Swagger UI в корневом URL
     });
 }
-
+app.UseMiddleware<ErrorHandleMiddleware>();
 app.UseHttpsRedirection();
 
 var serviceProvider = app.Services.CreateScope().ServiceProvider;

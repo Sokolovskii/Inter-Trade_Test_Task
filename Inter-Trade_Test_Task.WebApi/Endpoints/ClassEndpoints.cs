@@ -12,37 +12,31 @@ namespace Inter_Trade_Test_Task.WebApi.Endpoints
             app.MapGet("/api/classes", async () =>
             {
                 var service = serviceProvider.GetRequiredService<IService<ClassModel, ClassApiDTO>>();
-                var resultList = await service.Get();
-                var result = resultList.Select(e => JsonSerializer.Serialize(e));
-                return result;
+                return await service.Get();
             }).WithTags("classes");
 
             app.MapGet("/api/classes/" + "{ Id }", async (long id) =>
             {
                 var service = serviceProvider.GetRequiredService<IService<ClassModel, ClassApiDTO>>();
-                var a = await service.GetById(id);
-                var result = JsonSerializer.Serialize(a);
-                return result;
+                return await service.GetById(id);
             }).WithTags("classes");
 
-            app.MapPost("/api/classes", (string json) =>
+            app.MapPost("/api/classes", async (ClassApiDTO dto) =>
             {
-                var dto = JsonSerializer.Deserialize<ClassApiDTO>(json);
                 var service = serviceProvider.GetRequiredService<IService<ClassModel, ClassApiDTO>>();
-                service.Insert(dto);
+                await service.Insert(dto);
             }).WithTags("classes");
 
-            app.MapPut("/api/classes/" + "{ Id }", (string json) =>
+            app.MapPut("/api/classes/" + "{ Id }", async (ClassApiDTO dto) =>
             {
-                var dto = JsonSerializer.Deserialize<ClassApiDTO>(json);
                 var service = serviceProvider.GetRequiredService<IService<ClassModel, ClassApiDTO>>();
-                service.Update(dto);
+                await service.Update(dto);
             }).WithTags("classes");
 
-            app.MapDelete("/api/classes/" + "{ Id }", (long id) =>
+            app.MapDelete("/api/classes/" + "{ Id }",async (long id) =>
             {
                 var service = serviceProvider.GetRequiredService<IService<ClassModel, ClassApiDTO>>();
-                service.Delete(id);
+                await service.Delete(id);
             }).WithTags("classes");
         }
     }

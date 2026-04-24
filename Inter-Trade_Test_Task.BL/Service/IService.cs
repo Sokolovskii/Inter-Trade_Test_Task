@@ -2,9 +2,9 @@
 {
     public interface IService<TModel, TApiDto>
     {
-        public  void Insert(TApiDto dto);
-        public void Update(TApiDto dto);
-        public void Delete(long id);
+        public Task Insert(TApiDto dto);
+        public Task Update(TApiDto dto);
+        public Task Delete(long id);
         public Task<TApiDto> GetById(long id);
         public Task<List<TApiDto>> Get();
 

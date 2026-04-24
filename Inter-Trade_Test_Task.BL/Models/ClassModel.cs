@@ -12,9 +12,9 @@ namespace Inter_Trade_Test_Task.BL.Models
         public ClassModel() 
         {}
 
-        public bool IsValid()
+        public bool IsValid(bool IsInsertion)
         {
-            return Id>0 &&
+            return (IsInsertion || Id>0) &&
                 Name != null && Name != default &&
                 SchoolId > 0;
         }

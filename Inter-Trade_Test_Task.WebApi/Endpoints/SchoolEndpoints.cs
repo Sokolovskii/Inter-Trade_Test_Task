@@ -12,37 +12,33 @@ namespace Inter_Trade_Test_Task.WebApi.Endpoints
             app.MapGet("/api/schools", async () =>
             {
                 var service = serviceProvider.GetRequiredService<IService<SchoolModel, SchoolApiDTO>>();
-                var resultList = await service.Get();
-                var result = resultList.Select(e => JsonSerializer.Serialize(e));
-                return resultList;
+                return await service.Get();
             }).WithTags("schools");
 
             app.MapGet("/api/schools/" + "{ Id }", async (long id) =>
             {
                 var service = serviceProvider.GetRequiredService<IService<SchoolModel, SchoolApiDTO>>();
-                var a = await service.GetById(id);
-                var result = JsonSerializer.Serialize(a);
-                return result;
+                return await service.GetById(id);
             }).WithTags("schools");
 
-            app.MapPost("/api/schools/", (SchoolApiDTO dto) =>
+            app.MapPost("/api/schools/", async (SchoolApiDTO dto) =>
             {
                 //var dto = JsonSerializer.Deserialize<SchoolApiDTO>(json);
                 var service = serviceProvider.GetRequiredService<IService<SchoolModel, SchoolApiDTO>>();
-                service.Insert(dto);
+                await service.Insert(dto);
             }).WithTags("schools");
 
-            app.MapPut("/api/schools/" + "{ Id }", (SchoolApiDTO dto) =>
+            app.MapPut("/api/schools/" + "{ Id }", async (SchoolApiDTO dto) =>
             {
                 //var dto = JsonSerializer.Deserialize<SchoolApiDTO>(json);
                 var service = serviceProvider.GetRequiredService<IService<SchoolModel, SchoolApiDTO>>();
-                service.Update(dto);
+                await service.Update(dto);
             }).WithTags("schools");
 
-            app.MapDelete("/api/schools/" + "{ Id }", (long id) =>
+            app.MapDelete("/api/schools/" + "{ Id }", async (long id) =>
             {
                 var service = serviceProvider.GetRequiredService<IService<SchoolModel, SchoolApiDTO>>();
-                service.Delete(id);
+                await service.Delete(id);
             }).WithTags("schools");
         }
     }

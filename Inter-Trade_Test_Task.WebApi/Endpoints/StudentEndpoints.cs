@@ -12,37 +12,31 @@ namespace Inter_Trade_Test_Task.WebApi.Endpoints
             app.MapGet("/api/students", async () =>
             {
                 var service = serviceProvider.GetRequiredService<IService<StudentModel, StudentApiDTO>>();
-                var resultList = await service.Get();
-                var result = resultList.Select(e => JsonSerializer.Serialize(e));
-                return result;
+                return await service.Get();
             }).WithTags("students");
 
             app.MapGet("/api/students/" + "{ Id }", async (long id) =>
             {
                 var service = serviceProvider.GetRequiredService<IService<StudentModel, StudentApiDTO>>();
-                var a = await service.GetById(id);
-                var result = JsonSerializer.Serialize(a);
-                return result;
+                return await service.GetById(id);
             }).WithTags("students");
 
-            app.MapPost("/api/students", (string json) =>
+            app.MapPost("/api/students", async (StudentApiDTO dto) =>
             {
-                var dto = JsonSerializer.Deserialize<StudentApiDTO>(json);
                 var service = serviceProvider.GetRequiredService<IService<StudentModel, StudentApiDTO>>();
-                service.Insert(dto);
+                await service.Insert(dto);
             }).WithTags("students");
 
-            app.MapPut("/api/students/" + "{ Id }", (string json) =>
+            app.MapPut("/api/students/" + "{ Id }", async (StudentApiDTO dto) =>
             {
-                var dto = JsonSerializer.Deserialize<StudentApiDTO>(json);
                 var service = serviceProvider.GetRequiredService<IService<StudentModel, StudentApiDTO>>();
-                service.Update(dto);
+                await service.Update(dto);
             }).WithTags("students");
 
-            app.MapDelete("/api/students/" + "{ Id }", (long id) =>
+            app.MapDelete("/api/students/" + "{ Id }", async (long id) =>
             {
                 var service = serviceProvider.GetRequiredService<IService<StudentModel, StudentApiDTO>>();
-                service.Delete(id);
+                await service.Delete(id);
             }).WithTags("students");
         }
     }

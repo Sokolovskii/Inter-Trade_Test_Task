@@ -7,8 +7,8 @@ namespace Inter_Trade_Test_Task.BL.Service
 {
     public class SchoolService : IService<SchoolModel, SchoolApiDTO>
     {
-        private readonly IAsyncRepository<IDtoEntity> _repo;
-        public SchoolService(IAsyncRepository<IDtoEntity> repo)
+        private readonly IAsyncRepository<SchoolDTO> _repo;
+        public SchoolService(IAsyncRepository<SchoolDTO> repo)
         {
             _repo = repo;
         }
@@ -24,7 +24,7 @@ namespace Inter_Trade_Test_Task.BL.Service
             return [.. dtos.Select(e=>
             {
                 var model = new SchoolModel();
-                model.FillModelFromDTO((SchoolDTO)e);
+                model.FillModelFromDTO(e);
                 return model.ModelToAPI();
             })];
 
@@ -35,7 +35,7 @@ namespace Inter_Trade_Test_Task.BL.Service
             if (id <= 0) throw new ArgumentException("Идентификатор записи должен быть больше 0");
             var dto = await _repo.GetById(id);
             var model = new SchoolModel();
-            model.FillModelFromDTO((SchoolDTO)dto);
+            model.FillModelFromDTO(dto);
             return model.ModelToAPI();
         }
 

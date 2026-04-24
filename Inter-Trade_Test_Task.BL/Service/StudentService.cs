@@ -7,8 +7,8 @@ namespace Inter_Trade_Test_Task.BL.Service
 {
     public class StudentService : IService<StudentModel, StudentApiDTO>
     {
-        private readonly IAsyncRepository<IDtoEntity> _repo;
-        public StudentService(IAsyncRepository<IDtoEntity> repo)
+        private readonly IAsyncRepository<StudentDTO> _repo;
+        public StudentService(IAsyncRepository<StudentDTO> repo)
         {
             _repo = repo;
         }
@@ -24,7 +24,7 @@ namespace Inter_Trade_Test_Task.BL.Service
             return [.. dtos.Select(e=>
             {
                 var model = new StudentModel();
-                model.FillModelFromDTO((StudentDTO)e);
+                model.FillModelFromDTO(e);
                 return model.ModelToAPI();
             })];
 
@@ -35,7 +35,7 @@ namespace Inter_Trade_Test_Task.BL.Service
             if (id <= 0) throw new ArgumentException("Идентификатор записи должен быть больше 0");
             var dto = await _repo.GetById(id);
             var model = new StudentModel();
-            model.FillModelFromDTO((StudentDTO)dto);
+            model.FillModelFromDTO(dto);
             return model.ModelToAPI();
         }
 
@@ -53,6 +53,11 @@ namespace Inter_Trade_Test_Task.BL.Service
             model.FillModelFromDTO(dto);
             if (!model.IsValid()) throw new ArgumentException("Запись содержит отсутствующие поля, либо ее идентификатор меньше или равен 0");
             _repo.UpdateAsync(model.ModelToDTO());
+        }
+
+        public IService<IModel<StudentDTO, StudentApiDTO>, StudentApiDTO> GetService()
+        {
+            return (IService<IModel<StudentDTO, StudentApiDTO>, StudentApiDTO>)this;
         }
     }
 }

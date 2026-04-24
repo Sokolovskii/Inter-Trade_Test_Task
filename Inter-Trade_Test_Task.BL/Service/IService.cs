@@ -1,7 +1,4 @@
-﻿using Inter_Trade_Test_Task.BL.Models;
-using Inter_Trade_Test_Task.DAL.DTO;
-
-namespace Inter_Trade_Test_Task.BL.Service
+﻿namespace Inter_Trade_Test_Task.BL.Service
 {
     public interface IService<TModel, TApiDto>
     {

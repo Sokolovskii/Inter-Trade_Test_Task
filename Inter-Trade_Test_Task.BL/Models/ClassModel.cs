@@ -1,9 +1,9 @@
-﻿using ClassApiDto = Inter_Trade_Test_Task.WebApi.ApiDTO.ClassDTO;
-using ClassEntityDto = Inter_Trade_Test_Task.DAL.DTO.ClassDTO;
+﻿using Inter_Trade_Test_Task.BL.ApiDTO;
+using Inter_Trade_Test_Task.DAL.DTO;
 
 namespace Inter_Trade_Test_Task.BL.Models
 {
-    public class ClassModel : IModel<ClassEntityDto, ClassApiDto>
+    public class ClassModel : IModel<ClassDTO, ClassApiDTO>
     {
         public long Id { get; set; }
         public string Name { get; set; }
@@ -12,39 +12,40 @@ namespace Inter_Trade_Test_Task.BL.Models
         public ClassModel() 
         {}
 
-        public bool IsValid()
+        public bool IsValid(bool IsInsertion)
         {
-            return Id>0 &&
+            return (IsInsertion || Id>0) &&
                 Name != null && Name != default &&
                 SchoolId > 0;
         }
 
-        public void FillModelFromDTO(ClassApiDto dto)
+        public void FillModelFromDTO(ClassApiDTO dto)
         {
             Id = dto.Id;
             Name = dto.Name;
             SchoolId = dto.SchoolId;
         }
 
-        public void FillModelFromDTO(ClassEntityDto dto)
+        public void FillModelFromDTO(ClassDTO dto)
         {
             Id = dto.Id;
             Name = dto.Name;
             SchoolId = dto.SchoolId;
         }
 
-        public ClassApiDto ModelToAPI() 
+        public ClassApiDTO ModelToAPI() 
         { 
-            return new ClassApiDto() 
+            return new ClassApiDTO() 
             { 
+                Id = Id,
                 Name = Name,
                 SchoolId = SchoolId,
             };
         }
 
-        public ClassEntityDto ModelToDTO()
+        public ClassDTO ModelToDTO()
         {
-            return new ClassEntityDto()
+            return new ClassDTO()
             {
                 Id = Id,
                 Name = Name,

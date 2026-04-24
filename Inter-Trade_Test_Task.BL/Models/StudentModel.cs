@@ -1,9 +1,9 @@
-﻿using StudentApiDto = Inter_Trade_Test_Task.WebApi.ApiDTO.StudentDTO;
-using StudentEntityDto = Inter_Trade_Test_Task.DAL.DTO.StudentDTO;
+﻿using Inter_Trade_Test_Task.BL.ApiDTO;
+using Inter_Trade_Test_Task.DAL.DTO;
 
 namespace Inter_Trade_Test_Task.BL.Models
 {
-    public class StudentModel : IModel<StudentEntityDto, StudentApiDto>
+    public class StudentModel : IModel<StudentDTO, StudentApiDTO>
     {
         public long Id { get; set; }
         public string FirstName { get; set; }
@@ -12,18 +12,18 @@ namespace Inter_Trade_Test_Task.BL.Models
         public long ClassId { get; set; }
         public StudentModel(){ }
 
-        public bool IsValid()
+        public bool IsValid(bool IsInsertion)
         {
-            return Id > 0 &&
+            return (IsInsertion || Id > 0) &&
                 FirstName != null && FirstName != string.Empty &&
                 LastName != null && LastName != string.Empty &&
                 BirthDate != default &&
                 ClassId > 0;
         }
 
-        public StudentEntityDto ModelToDTO()
+        public StudentDTO ModelToDTO()
         {
-            return new StudentEntityDto()
+            return new StudentDTO()
             {
                 Id = Id,
                 FirstName = FirstName,
@@ -33,9 +33,9 @@ namespace Inter_Trade_Test_Task.BL.Models
             };
         }
 
-        public StudentApiDto ModelToAPI()
+        public StudentApiDTO ModelToAPI()
         {
-            return new StudentApiDto()
+            return new StudentApiDTO()
             {
                 Id = Id,
                 FirstName = FirstName,
@@ -45,7 +45,7 @@ namespace Inter_Trade_Test_Task.BL.Models
             };
         }
 
-        public void FillModelFromDTO(StudentEntityDto dto)
+        public void FillModelFromDTO(StudentDTO dto)
         {
             Id = dto.Id;
             FirstName = dto.FirstName;
@@ -54,7 +54,7 @@ namespace Inter_Trade_Test_Task.BL.Models
             ClassId = dto.ClassId;
         }
 
-        public void FillModelFromDTO(StudentApiDto dto)
+        public void FillModelFromDTO(StudentApiDTO dto)
         {
             Id = dto.Id;
             FirstName = dto.FirstName;

@@ -1,6 +1,6 @@
-﻿namespace Inter_Trade_Test_Task.WebApi.ApiDTO
+﻿namespace Inter_Trade_Test_Task.BL.ApiDTO
 {
-    public class ClassDTO
+    public class ClassApiDTO
     {
         public long Id { get; set; }
         public string Name { get; set; }

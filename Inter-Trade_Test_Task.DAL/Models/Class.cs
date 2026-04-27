@@ -13,7 +13,7 @@ namespace Inter_Trade_Test_Task.DAL.Models
         [Column("Name", TypeName = "TEXT"), Required]
         public string Name { get; set; }
 
-        [Column("SchoolId", TypeName = "INTEGER"), ForeignKey("School"), Required]
+        [Column("SchoolId", TypeName = "INTEGER"),ForeignKey("Schools"), Required]
         public long SchoolId { get; set; }
 
         public bool IsValid()

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Inter_Trade_Test_Task.DAL.Models
 {
-    [Table("Student")]
+    [Table("Students")]
     public class Student : IModel
     {
         [Column("Id", TypeName = "INTEGER PRIMARY KEY"), Key, Required]
@@ -20,7 +20,7 @@ namespace Inter_Trade_Test_Task.DAL.Models
         [Column("BirthDate", TypeName = "DATETIME"), Required]
         public DateTime BirthDate { get; set; }
 
-        [Column("ClassId", TypeName = "INTEGER"), ForeignKey("Class"), Required]
+        [Column("ClassId", TypeName = "INTEGER"), ForeignKey("Classes"), Required]
         public long ClassId { get; set; }
 
         public bool IsValid()

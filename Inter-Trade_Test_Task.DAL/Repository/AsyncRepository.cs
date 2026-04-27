@@ -169,7 +169,7 @@ namespace Inter_Trade_Test_Task.DAL.Repository
                     }
                 }
                 command.CommandText = $"UPDATE {tableAttr.Name} SET {string.Join(',', setList)} WHERE {keyColumnName} = {keyValue}";
-                await command.ExecuteNonQueryAsync();
+                await command.ExecuteNonQueryAsync(ct);
             }
         }
 

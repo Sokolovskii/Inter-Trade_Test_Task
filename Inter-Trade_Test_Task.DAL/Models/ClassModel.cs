@@ -18,9 +18,9 @@ namespace Inter_Trade_Test_Task.DAL.Models
         [ForeignKey("SchoolId")]
         public virtual School School { get; set; }
 
-        public bool IsValid(bool IsInsertion)
+        public bool IsValid()
         {
-            return (IsInsertion || Id>0) &&
+            return Id>0 &&
                 Name != null && Name != default &&
                 SchoolId > 0;
         }

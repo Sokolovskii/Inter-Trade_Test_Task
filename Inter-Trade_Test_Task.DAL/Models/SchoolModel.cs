@@ -15,10 +15,10 @@ namespace Inter_Trade_Test_Task.DAL.Models
         [Column("Address", TypeName = "TEXT")]
         public string Address { get; set; }
 
-        public bool IsValid(bool IsInsertion)
+        public bool IsValid()
         {
             return
-                (IsInsertion || Id > 0) &&
+                Id > 0 &&
                 Name != null && Name != default &&
                 Address != null && Address != default;
         }

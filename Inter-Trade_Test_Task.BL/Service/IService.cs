@@ -1,12 +1,12 @@
 ﻿namespace Inter_Trade_Test_Task.BL.Service
 {
-    public interface IService<TModel, TApiDto>
+    public interface IService<TEntity>
     {
-        public Task Insert(TApiDto dto);
-        public Task Update(TApiDto dto);
+        public Task Insert(TEntity model);
+        public Task Update(TEntity model);
         public Task Delete(long id);
-        public Task<TApiDto> GetById(long id);
-        public Task<List<TApiDto>> Get();
+        public Task<TEntity> GetById(long id);
+        public Task<List<TEntity>> Get();
 
     }
 }

@@ -13,19 +13,4 @@
     <PackageReference Include="System.Data.SQLite" Version="2.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="DBL\SQLScripts.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>SQLScripts.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="DBL\SQLScripts.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>SQLScripts.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
 </Project>

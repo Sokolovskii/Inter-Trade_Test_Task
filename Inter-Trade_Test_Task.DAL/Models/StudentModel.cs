@@ -25,9 +25,9 @@ namespace Inter_Trade_Test_Task.DAL.Models
         [ForeignKey("ClassId")]
         public virtual Class Class { get; set; }
 
-        public bool IsValid(bool IsInsertion)
+        public bool IsValid()
         {
-            return (IsInsertion || Id > 0) &&
+            return Id > 0 &&
                 FirstName != null && FirstName != string.Empty &&
                 LastName != null && LastName != string.Empty &&
                 BirthDate != default &&

@@ -1,16 +1,29 @@
-﻿using Inter_Trade_Test_Task.BL.ApiDTO;
-using Inter_Trade_Test_Task.DAL.DTO;
+﻿
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Inter_Trade_Test_Task.BL.Models
 {
-    public class StudentModel : IModel<StudentDTO, StudentApiDTO>
+    [Table("Student")]
+    public class Student : IModel
     {
+        [Column("Id", TypeName = "INTEGER"), Key]
         public long Id { get; set; }
+
+        [Column("FirstName", TypeName = "TEXT")]
         public string FirstName { get; set; }
+
+        [Column("LastName", TypeName = "TEXT")]
         public string LastName {  get; set; }
+
+        [Column("BirthDate", TypeName = "DATETIME")]
         public DateTime BirthDate { get; set; }
+
+        [Column("ClassId", TypeName = "INTEGER")]
         public long ClassId { get; set; }
-        public StudentModel(){ }
+
+        [ForeignKey("ClassId")]
+        public virtual Class Class { get; set; }
 
         public bool IsValid(bool IsInsertion)
         {
@@ -19,48 +32,6 @@ namespace Inter_Trade_Test_Task.BL.Models
                 LastName != null && LastName != string.Empty &&
                 BirthDate != default &&
                 ClassId > 0;
-        }
-
-        public StudentDTO ModelToDTO()
-        {
-            return new StudentDTO()
-            {
-                Id = Id,
-                FirstName = FirstName,
-                LastName = LastName,
-                BirthDate = BirthDate,
-                ClassId = ClassId
-            };
-        }
-
-        public StudentApiDTO ModelToAPI()
-        {
-            return new StudentApiDTO()
-            {
-                Id = Id,
-                FirstName = FirstName,
-                LastName = LastName,
-                BirthDate = BirthDate,
-                ClassId = ClassId
-            };
-        }
-
-        public void FillModelFromDTO(StudentDTO dto)
-        {
-            Id = dto.Id;
-            FirstName = dto.FirstName;
-            LastName = dto.LastName;
-            BirthDate = dto.BirthDate;
-            ClassId = dto.ClassId;
-        }
-
-        public void FillModelFromDTO(StudentApiDTO dto)
-        {
-            Id = dto.Id;
-            FirstName = dto.FirstName;
-            LastName = dto.LastName;
-            BirthDate = dto.BirthDate;
-            ClassId = dto.ClassId;
         }
     }
 }

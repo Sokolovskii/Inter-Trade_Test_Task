@@ -27,19 +27,18 @@ namespace Inter_Trade_Test_Task.DAL.Repository
             await using (var connection = await _dbConnnectionFactory.GetConnection())
             using (var command = new SQLiteCommand(connection))
             {
-                command.CommandText = $"INSERT INTO {tableAttr.Name} (";
-                foreach (var prop in type.GetProperties()) 
+                var props = type.GetProperties().Where(e => e.GetCustomAttribute<KeyAttribute>() == null);
+                ;
+                foreach (var prop in props) 
                 {
                     var columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
                     var propValue = prop.GetValue(dto);
 
-                    columnDefs.Add("@" + columnAttr.Name);
-                    command.Parameters.AddWithValue("@" + columnAttr.Name, propValue);
+                    columnDefs.Add(columnAttr.Name);
+                    command.Parameters.AddWithValue($"@{columnAttr.Name}", propValue);
                 }
 
-                command.CommandText += string.Join(',', columnDefs);
-                command.CommandText += ")";
-
+                command.CommandText = $"INSERT INTO {tableAttr.Name} ({string.Join(',', columnDefs)}) VALUES({string.Join(',', columnDefs.Select(e => $"@{e}"))})";
                 await command.ExecuteNonQueryAsync(ct);
                 await connection.CloseAsync();
             }

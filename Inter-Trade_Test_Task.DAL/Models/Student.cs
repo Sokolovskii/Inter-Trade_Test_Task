@@ -7,27 +7,25 @@ namespace Inter_Trade_Test_Task.DAL.Models
     [Table("Student")]
     public class Student : IModel
     {
-        [Column("Id", TypeName = "INTEGER"), Key]
+        [Column("Id", TypeName = "INTEGER PRIMARY KEY"), Key, Required]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
-        [Column("FirstName", TypeName = "TEXT")]
+        [Column("FirstName", TypeName = "TEXT"), Required]
         public string FirstName { get; set; }
 
-        [Column("LastName", TypeName = "TEXT")]
+        [Column("LastName", TypeName = "TEXT"), Required]
         public string LastName {  get; set; }
 
-        [Column("BirthDate", TypeName = "DATETIME")]
+        [Column("BirthDate", TypeName = "DATETIME"), Required]
         public DateTime BirthDate { get; set; }
 
-        [Column("ClassId", TypeName = "INTEGER")]
+        [Column("ClassId", TypeName = "INTEGER"), ForeignKey("Class"), Required]
         public long ClassId { get; set; }
-
-        [ForeignKey("ClassId")]
-        public virtual Class Class { get; set; }
 
         public bool IsValid()
         {
-            return Id > 0 &&
+            return Id >= 0 &&
                 FirstName != null && FirstName != string.Empty &&
                 LastName != null && LastName != string.Empty &&
                 BirthDate != default &&

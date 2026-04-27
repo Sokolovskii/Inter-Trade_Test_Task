@@ -19,27 +19,27 @@ namespace Inter_Trade_Test_Task.WebApi.Utils
             var columnName = typeof(TEntity).GetCustomAttribute<TableAttribute>().Name;
             app.MapGet($"/api/{columnName.ToLower()}", async (CancellationToken ct, IService<TEntity> service) =>
             {
-                return await service.Get();
+                return await service.Get(ct);
             }).WithTags($"{columnName.ToLower()}");
 
             app.MapGet($"/api/{columnName.ToLower()}/" + "{ Id }", async (long id, CancellationToken ct, IService<TEntity> service) =>
             {
-                return await service.GetById(id);
+                return await service.GetById(id, ct);
             }).WithTags($"{columnName.ToLower()}");
 
             app.MapPost($"/api/{columnName.ToLower()}", async (TEntity dto, CancellationToken ct, IService<TEntity> service) =>
             {
-                await service.Insert(dto);
+                await service.Insert(dto, ct);
             }).WithTags($"{columnName.ToLower()}");
 
             app.MapPut($"/api/{columnName.ToLower()}/" + "{ Id }", async (TEntity dto, CancellationToken ct, IService<TEntity> service) =>
             {
-                await service.Update(dto);
+                await service.Update(dto, ct);
             }).WithTags($"{columnName.ToLower()}");
 
             app.MapDelete($"/api/{columnName.ToLower()}/" + "{ Id }", async (long id, CancellationToken ct, IService<TEntity> service) =>
             {
-                await service.Delete(id);
+                await service.Delete(id, ct);
             }).WithTags($"{columnName.ToLower()}");
         }
     }

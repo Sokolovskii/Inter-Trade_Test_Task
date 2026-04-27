@@ -10,33 +10,33 @@ namespace Inter_Trade_Test_Task.BL.Service
         {
             _repo = repo;
         }
-        public async Task Delete(long id)
+        public async Task Delete(long id, CancellationToken ct)
         {
-            if (id > 0) await _repo.RemoveAsync(id);
+            if (id > 0) await _repo.RemoveAsync(id, ct);
             else throw new ArgumentException("Идентификатор записи должен быть больше 0");
         }
 
-        public async Task<List<TEntity>> Get()
+        public async Task<List<TEntity>> Get(CancellationToken ct)
         {
-            return await _repo.Get();
+            return await _repo.Get(ct);
         }
 
-        public async Task<TEntity> GetById(long id)
+        public async Task<TEntity> GetById(long id, CancellationToken ct)
         {
             if (id <= 0) throw new ArgumentException("Идентификатор записи должен быть больше 0");
-            return await _repo.GetById(id);
+            return await _repo.GetById(id, ct);
         }
 
-        public async Task Insert(TEntity dto)
+        public async Task Insert(TEntity dto, CancellationToken ct)
         {
             if (!dto.IsValid()) throw new ArgumentException("Запись содержит отсутствующие поля, либо ее идентификатор меньше или равен 0");
-            await _repo.InsertAsync(dto);
+            await _repo.InsertAsync(dto, ct);
         }
 
-        public async Task Update(TEntity dto)
+        public async Task Update(TEntity dto, CancellationToken ct)
         {
             if (!dto.IsValid()) throw new ArgumentException("Запись содержит отсутствующие поля, либо ее идентификатор меньше или равен 0");
-            await _repo.UpdateAsync(dto);
+            await _repo.UpdateAsync(dto, ct);
         }
     }
 }

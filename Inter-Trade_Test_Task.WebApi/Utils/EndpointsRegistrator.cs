@@ -4,8 +4,16 @@ using System.Reflection;
 
 namespace Inter_Trade_Test_Task.WebApi.Utils
 {
+    /// <summary>
+    /// Класс регистрации конечных точек
+    /// </summary>
     public static class EndpointsRegistrator
     {
+        /// <summary>
+        /// Параметрический метод регистрации конечных точек
+        /// </summary>
+        /// <typeparam name="TEntity">Тип модели</typeparam>
+        /// <param name="app">Инстанс приложения</param>
         public static void RegisterEndpoints<TEntity>(WebApplication app)
         {
             var columnName = typeof(TEntity).GetCustomAttribute<TableAttribute>().Name;

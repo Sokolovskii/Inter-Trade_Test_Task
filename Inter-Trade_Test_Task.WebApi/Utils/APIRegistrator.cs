@@ -18,7 +18,8 @@ namespace Inter_Trade_Test_Task.WebApi.Utils
         /// <param name="lifetime">Время жизни контейнера</param>
         public static void RegisterEntitiesDI(WebApplicationBuilder builder, IEnumerable<Type> excluded, string targetNamespace, LifeTime lifetime = LifeTime.Scoped)
         {
-            var entityTypes = GetModelTypesFromNamespace(targetNamespace).Except(excluded).ToList();
+            var entityTypes = GetModelTypesFromNamespace(targetNamespace).ToList();
+            if(excluded != null) entityTypes.Except(excluded).ToList();
 
             foreach (var entityType in entityTypes) 
             {
@@ -35,7 +36,8 @@ namespace Inter_Trade_Test_Task.WebApi.Utils
         /// <param name="targetNamespace">Пространство имен моделей приложения</param>
         public static void RegisterEntitiesEndpoints(WebApplication app, IEnumerable<Type> excluded, string targetNamespace)
         {
-            var entityTypes = GetModelTypesFromNamespace(targetNamespace).Except(excluded).ToList();
+            var entityTypes = GetModelTypesFromNamespace(targetNamespace).ToList();
+            if (excluded != null) entityTypes.Except(excluded).ToList();
 
             foreach (var entityType in entityTypes)
             {

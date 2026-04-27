@@ -2,11 +2,11 @@
 {
     public interface IService<TEntity>
     {
-        public Task Insert(TEntity model);
-        public Task Update(TEntity model);
-        public Task Delete(long id);
-        public Task<TEntity> GetById(long id);
-        public Task<List<TEntity>> Get();
+        public Task Insert(TEntity model, CancellationToken ct);
+        public Task Update(TEntity model, CancellationToken ct);
+        public Task Delete(long id, CancellationToken ct);
+        public Task<TEntity> GetById(long id, CancellationToken ct);
+        public Task<List<TEntity>> Get(CancellationToken ct);
 
     }
 }

@@ -1,12 +1,8 @@
-using Inter_Trade_Test_Task.BL.ApiDTO;
-using Inter_Trade_Test_Task.BL.Models;
-using Inter_Trade_Test_Task.BL.Service;
-using Inter_Trade_Test_Task.DAL.DTO;
-using Inter_Trade_Test_Task.DAL.Repository;
-using Inter_Trade_Test_Task.WebApi.Endpoints;
+using Inter_Trade_Test_Task.WebApi.Utils;
 using Inter_Trade_Test_Task.WebApi.Middleware;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using Inter_Trade_Test_Task.DAL.DBL;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,13 +10,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<IAsyncRepository<ClassDTO>, AsyncRepository<ClassDTO>>();
-builder.Services.AddScoped<IAsyncRepository<SchoolDTO>, AsyncRepository<SchoolDTO>>();
-builder.Services.AddScoped<IAsyncRepository<StudentDTO>, AsyncRepository<StudentDTO>>();
 
-builder.Services.AddScoped<IService<StudentModel, StudentApiDTO>, StudentService>();
-builder.Services.AddScoped<IService<SchoolModel, SchoolApiDTO>, SchoolService>();
-builder.Services.AddScoped<IService<ClassModel, ClassApiDTO>, ClassService>();
+var repoDirectory = Path.GetDirectoryName(typeof(SQLiteConnectionFactory).Assembly.Location);
+var configPath = Path.Combine(repoDirectory, "appsettings.json");
+builder.Configuration.AddJsonFile(configPath, optional: false, reloadOnChange: true);
+
+builder.Configuration.AddJsonFile("appsettings.json");
+builder.Services.AddScoped<IDbConnnectionFactory, SQLiteConnectionFactory>();
+APIRegistrator.RegisterEntitiesDI(builder, null, "Inter_Trade_Test_Task.DAL.Models");
 
 var app = builder.Build();
 
@@ -38,11 +35,9 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ErrorHandleMiddleware>();
 app.UseHttpsRedirection();
 
-var serviceProvider = app.Services.CreateScope().ServiceProvider;
+APIRegistrator.RegisterEntitiesEndpoints(app, null, "Inter_Trade_Test_Task.DAL.Models");
 
-SchoolEndpoints.AddEndpoints(app, serviceProvider);
-ClassEndpoints.AddEndpoints(app, serviceProvider);
-StudentEndpoints.AddEndpoints(app, serviceProvider);
+var serviceProvider = app.Services.CreateScope().ServiceProvider;
 
 app.Run();
 

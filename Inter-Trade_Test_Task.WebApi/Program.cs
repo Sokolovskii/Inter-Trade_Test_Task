@@ -3,6 +3,7 @@ using Inter_Trade_Test_Task.WebApi.Middleware;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using Inter_Trade_Test_Task.DAL.DBL;
+using System.Collections;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,10 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
-
-var repoDirectory = Path.GetDirectoryName(typeof(SQLiteConnectionFactory).Assembly.Location);
-var configPath = Path.Combine(repoDirectory, "appsettings.json");
-builder.Configuration.AddJsonFile(configPath, optional: false, reloadOnChange: true);
 
 builder.Configuration.AddJsonFile("appsettings.json");
 builder.Services.AddScoped<IDbConnnectionFactory, SQLiteConnectionFactory>();

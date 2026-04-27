@@ -1,134 +1,225 @@
 ﻿using Inter_Trade_Test_Task.DAL.DBL;
-using Inter_Trade_Test_Task.DAL.DTO;
+using Inter_Trade_Test_Task.DAL.Models;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.SQLite;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace Inter_Trade_Test_Task.DAL.Repository
 {
-    public class AsyncRepository<TEntity> : IAsyncRepository<TEntity> where TEntity : IDtoEntity, new()
+    public class AsyncRepository<TEntity> : IAsyncRepository<TEntity> where TEntity : class, IModel, new()
     {
-        public Task InsertAsync(TEntity dto)
+        private readonly IDbConnnectionFactory _dbConnnectionFactory;
+        public AsyncRepository(IDbConnnectionFactory dbConnnectionFactory)
         {
-            return Task.Run(() =>
+            _dbConnnectionFactory = dbConnnectionFactory;
+            CreateDatabaseIfNotExist();
+        }
+        public async Task InsertAsync(TEntity dto, CancellationToken ct = default)
+        {
+            var type = typeof(TEntity);
+            var tableAttr = type.GetCustomAttribute<TableAttribute>();
+            var columnDefs = new List<string>();
+
+            await using (var connection = await _dbConnnectionFactory.GetConnection())
+            using (var command = new SQLiteCommand(connection))
             {
-                using (var connection = DBConfig.GetConnection())
+                var props = type.GetProperties().Where(e => e.GetCustomAttribute<KeyAttribute>() == null);
+                ;
+                foreach (var prop in props) 
                 {
-                    var command = QueryConstructor.GetCommand(dto, RequestTypes.Insert);
-                    command.Connection = connection;
-                    command.ExecuteNonQuery();
-                    connection.Close();
+                    var columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
+                    var propValue = prop.GetValue(dto);
+
+                    columnDefs.Add(columnAttr.Name);
+                    command.Parameters.AddWithValue($"@{columnAttr.Name}", propValue);
                 }
-                return;
-            });
+
+                command.CommandText = $"INSERT INTO {tableAttr.Name} ({string.Join(',', columnDefs)}) VALUES({string.Join(',', columnDefs.Select(e => $"@{e}"))})";
+                await command.ExecuteNonQueryAsync(ct);
+                await connection.CloseAsync();
+            }
+                
         }
 
-        public Task<List<TEntity>> Get()
+        public async Task<List<TEntity>> Get(CancellationToken ct = default)
         {
-            return Task.Run(() =>
+            var type = typeof(TEntity);
+            var tableAttr = type.GetCustomAttribute<TableAttribute>();
+            var columns2props = new Dictionary<string, PropertyInfo>();
+            foreach (var prop in type.GetProperties())
             {
-                using (var connection = DBConfig.GetConnection())
+                columns2props.Add(prop.GetCustomAttribute<ColumnAttribute>()?.Name ?? prop.Name, prop);
+            }
+
+            var result = new List<TEntity>();
+
+            await using (var connection = await _dbConnnectionFactory.GetConnection())
+            using (var command = new SQLiteCommand(connection))
+            {
+                command.CommandText = $"SELECT * FROM {tableAttr.Name}";
+
+                await using(var reader = await command.ExecuteReaderAsync(ct))
                 {
-                    var result = new List<TEntity>();
-                    var command = QueryConstructor.GetCommand(new TEntity() { Id = 0 }, RequestTypes.GetAll);
-                    SQLiteDataAdapter adapter = new SQLiteDataAdapter(command.CommandText, connection);
-                    var data = new DataTable();
-                    adapter.Fill(data);
-                    foreach (var item in data.Select())
+                    if(await reader.ReadAsync())
                     {
-                        result.Add(GetDtoFromRow(item));
+                        var entity = new TEntity();
+
+                        for(var i=0; i<reader.FieldCount; i++)
+                        {
+                            var field = reader.GetName(i);
+                            var prop = columns2props[field];
+                            object? value = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                            prop.SetValue(entity, value);
+                        }
+
+                        result.Add(entity);
                     }
+
                     return result;
-                }
-            });
-        }
-
-        public Task<TEntity> GetById(long id)
-        {
-            return Task.Run(() =>
-            {
-                using (var connection = DBConfig.GetConnection())
-                {
-                    try
-                    {
-                        var command = QueryConstructor.GetCommand(new TEntity() { Id = id }, RequestTypes.Get);
-                        var data = new DataTable();
-                        SQLiteDataAdapter adapter = new SQLiteDataAdapter(command.CommandText, connection);
-                        adapter.Fill(data);
-                        var result = GetDtoFromRow(data.Select().FirstOrDefault());
-                        connection.Close();
-                        if (result == null) throw new FileNotFoundException($"Запись с идентификатором {id} не найдена");
-                        return result;
-                    }
-                    catch (Exception ex) 
-                    {
-                        throw new InvalidOperationException(ex.Message);
-                    }
                     
                 }
-            });
-        }
-
-        public Task RemoveAsync(long id)
-        {
-            return Task.Run(() =>
-            {
-                using (var connection = DBConfig.GetConnection())
-                {
-                    var command = QueryConstructor.GetCommand(new TEntity() { Id = id }, RequestTypes.Delete);
-                    command.Connection = connection;
-                    command.ExecuteNonQuery();
-                    connection.Close();
-                    return;
-                }
-            });
-        }
-
-        public async Task UpdateAsync(TEntity dto)
-        {
-            await Task.Run(async () =>
-            {
-                using (var connection = DBConfig.GetConnection())
-                {
-                    var other = await GetById(dto.Id);
-                    if (other == null) return;
-                    var entityProps = dto.GetType().GetProperties().Where(e => e.Name != "Id");
-                    var entityForUpdate = new TEntity() { Id = dto.Id };
-                    foreach (var entityProp in entityProps)
-                    {
-                        if (!entityProp.GetValue(dto).Equals(entityProp.GetValue(other)))
-                        {
-                            entityProp.SetValue(entityForUpdate, entityProp.GetValue(dto));
-                        }
-                    }
-                    var command = QueryConstructor.GetCommand(entityForUpdate, RequestTypes.Update);
-                    command.Connection = connection;
-                    command.ExecuteNonQuery();
-                    connection.Close();
-                    return;
-                }
-            });
-        }
-
-        private TEntity GetDtoFromRow(DataRow row)
-        {
-            if (row == null) return default;
-            var dto = new TEntity();
-            var props = typeof(TEntity).GetProperties();
-            foreach (var prop in props)
-            {
-                var propType = prop.PropertyType;
-                var propertyValue = (() =>
-                {
-                    if (propType == typeof(string)) return (object)row.Field<string>(prop.Name);
-                    if (propType == typeof(long)) return (object)row.Field<long>(prop.Name);
-                    if (propType == typeof(DateTime)) return (object)row.Field<DateTime>(prop.Name);
-                    return null;
-                });
-                var a = propertyValue.Invoke();
-                prop.SetValue(dto, propertyValue.Invoke());
             }
-            return dto;
+        }
+
+        public async Task<TEntity> GetById(long id, CancellationToken ct = default)
+        {
+            var type = typeof(TEntity);
+            var tableAttr = type.GetCustomAttribute<TableAttribute>();
+            var props = type.GetProperties();
+            string keyColumnName = props.FirstOrDefault(e => e.GetCustomAttribute<KeyAttribute>() != null)?.GetCustomAttribute<ColumnAttribute>()?.Name ?? "Id";
+
+            await using (var connection = await _dbConnnectionFactory.GetConnection())
+            using (var command = new SQLiteCommand(connection))
+            {
+                command.CommandText = $"SELECT * FROM {tableAttr.Name} WHERE {keyColumnName} = @key";
+                command.Parameters.AddWithValue("@key", id);
+
+                await using (var reader = await command.ExecuteReaderAsync(ct))
+                {
+                    if (await reader.ReadAsync(ct))
+                    {
+                        var result = new TEntity();
+                        foreach (var prop in props)
+                        {
+                            string columnName = prop.GetCustomAttribute<ColumnAttribute>()?.Name ?? prop.Name;
+                            int ordinal = reader.GetOrdinal(columnName);
+                            if (!reader.IsDBNull(ordinal))
+                            {
+                                object value = reader.GetValue(ordinal);
+                                if (value.GetType() != prop.PropertyType)
+                                    value = Convert.ChangeType(value, prop.PropertyType);
+                                prop.SetValue(result, value);
+                            }
+                        }
+                        return result;
+                    }
+                    return null;
+                }
+            }
+        }
+
+        public async Task RemoveAsync(long id, CancellationToken ct = default)
+        {
+            var type = typeof(TEntity);
+            var tableAttr = type.GetCustomAttribute<TableAttribute>();
+            var props = type.GetProperties();
+            string keyColumnName = props.FirstOrDefault(e => e.GetCustomAttribute<KeyAttribute>() != null)?.GetCustomAttribute<ColumnAttribute>()?.Name ?? "Id";
+
+            await using (var connection = await _dbConnnectionFactory.GetConnection())
+            using (var command = new SQLiteCommand(connection))
+            {
+                command.CommandText = $"DELETE FROM {tableAttr.Name} WHERE {keyColumnName} = @key";
+                command.Parameters.AddWithValue("@key", id);
+                await command.ExecuteNonQueryAsync(ct);
+            }
+        }
+
+        public async Task UpdateAsync(TEntity dto, CancellationToken ct = default)
+        {
+            var type = typeof(TEntity);
+            var tableAttr = type.GetCustomAttribute<TableAttribute>();
+            var props = type.GetProperties();
+            var keyProp = props.FirstOrDefault(e => e.GetCustomAttribute<KeyAttribute>() != null);
+            string keyColumnName = keyProp?.GetCustomAttribute<ColumnAttribute>()?.Name ?? "Id";
+            object keyValue = keyProp.GetValue(dto);
+
+            if (keyValue == null) throw new ArgumentException("Укажите идентификатор записи для обновления");
+
+            var setList = new List<string>();
+
+            await using (var connection = await _dbConnnectionFactory.GetConnection())
+            using (var command = new SQLiteCommand(connection))
+            {
+
+                foreach (var prop in props)
+                {
+                    if (prop != keyProp)
+                    {
+                        var columnName = prop.GetCustomAttribute<ColumnAttribute>()?.Name ?? prop.Name;
+                        object value = prop.GetValue(dto);
+
+                        if (value == null) continue;
+                        setList.Add($"{columnName} = @{columnName}");
+                        command.Parameters.AddWithValue($"@{columnName}", value);
+                    }
+                }
+                command.CommandText = $"UPDATE {tableAttr.Name} SET {string.Join(',', setList)} WHERE {keyColumnName} = {keyValue}";
+                await command.ExecuteNonQueryAsync(ct);
+            }
+        }
+
+        private async void CreateDatabaseIfNotExist()
+        {
+            using (var connection = await _dbConnnectionFactory.GetConnection())
+            using (var command = new SQLiteCommand(connection))
+            {
+                if (await IsTableExists()) return;
+                var type = typeof(TEntity);
+                var tableAttr = type.GetCustomAttribute<TableAttribute>();
+                var props = type.GetProperties();
+                command.CommandText = $"CREATE TABLE [{tableAttr.Name}] (\n";
+                var columnDefs = new List<string>();
+
+                foreach(var prop in props)
+                {
+                    var columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
+                    var typeName = columnAttr.TypeName;
+                    var isNullable = !IsValueTypeOrNullable(prop.PropertyType);
+
+                    var def = $"[{columnAttr.Name}] {typeName}";
+                    if (!isNullable) def += " NOT NULL";
+                    columnDefs.Add(def);
+                }
+
+                command.CommandText += string.Join(",\n", columnDefs);
+                command.CommandText += "\n);";
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+        private async Task<bool> IsTableExists()
+        {
+            using (var connection = await _dbConnnectionFactory.GetConnection())
+            using (var command = new SQLiteCommand(connection))
+            {
+                var type = typeof(TEntity);
+                var tableAttr = type.GetCustomAttribute<TableAttribute>();
+                command.CommandText = @"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name = @tableName";
+                command.Parameters.AddWithValue("@tableName", tableAttr.Name);
+
+                var result = await command.ExecuteScalarAsync();
+                return Convert.ToInt32(result) > 0;
+            }
+        }
+
+        private static bool IsValueTypeOrNullable(Type type)
+        {
+            return type.IsValueType || (type.IsGenericType &&
+                   type.GetGenericTypeDefinition() == typeof(Nullable<>));
         }
     }
 }

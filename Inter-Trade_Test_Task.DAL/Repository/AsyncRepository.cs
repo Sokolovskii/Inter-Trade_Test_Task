@@ -181,22 +181,26 @@ namespace Inter_Trade_Test_Task.DAL.Repository
                 var type = typeof(TEntity);
                 var tableAttr = type.GetCustomAttribute<TableAttribute>();
                 var props = type.GetProperties();
-                command.CommandText = $"CREATE TABLE [{tableAttr.Name}] (\n";
+                
                 var columnDefs = new List<string>();
-
+                var foreignKeyAttrs = new List<string>();
                 foreach(var prop in props)
                 {
                     var columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
-                    var typeName = columnAttr.TypeName;
-                    var isNullable = !IsValueTypeOrNullable(prop.PropertyType);
+                    if(prop.GetCustomAttribute<ForeignKeyAttribute>() != null) 
+                        foreignKeyAttrs.Add($"FOREIGN KEY ({columnAttr.Name}) REFERENCES {prop.GetCustomAttribute<ForeignKeyAttribute>()?.Name}(Id)");
+                    var typeName = columnAttr?.TypeName;
+
+                    var isNullable = prop.GetCustomAttribute<RequiredAttribute>() == null;
 
                     var def = $"[{columnAttr.Name}] {typeName}";
                     if (!isNullable) def += " NOT NULL";
                     columnDefs.Add(def);
                 }
 
-                command.CommandText += string.Join(",\n", columnDefs);
-                command.CommandText += "\n);";
+                command.CommandText = $"CREATE TABLE [{tableAttr.Name}] (\n{string.Join(",\n", columnDefs)}\n";
+                if (foreignKeyAttrs.Count > 0) command.CommandText += ",\n" + string.Join(",\n", foreignKeyAttrs);
+                command.CommandText += "\n)";
                 await command.ExecuteNonQueryAsync();
             }
         }
@@ -214,12 +218,6 @@ namespace Inter_Trade_Test_Task.DAL.Repository
                 var result = await command.ExecuteScalarAsync();
                 return Convert.ToInt32(result) > 0;
             }
-        }
-
-        private static bool IsValueTypeOrNullable(Type type)
-        {
-            return type.IsValueType || (type.IsGenericType &&
-                   type.GetGenericTypeDefinition() == typeof(Nullable<>));
         }
     }
 }

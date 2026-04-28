@@ -29,13 +29,13 @@ namespace Inter_Trade_Test_Task.BL.Service
 
         public async Task Insert(TEntity dto, CancellationToken ct)
         {
-            if (!dto.IsValid()) throw new ArgumentException("Запись содержит отсутствующие поля, либо ее идентификатор меньше или равен 0");
+            dto.Validate();
             await _repo.InsertAsync(dto, ct);
         }
 
         public async Task Update(TEntity dto, CancellationToken ct)
         {
-            if (!dto.IsValid()) throw new ArgumentException("Запись содержит отсутствующие поля, либо ее идентификатор меньше или равен 0");
+            dto.Validate();
             await _repo.UpdateAsync(dto, ct);
         }
     }

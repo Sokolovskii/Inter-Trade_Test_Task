@@ -41,7 +41,7 @@ namespace Inter_Trade_Test_Task.WebApi.Middleware
                     statusCode = (int)HttpStatusCode.BadRequest;
                     break;
                 case ArgumentException:
-                    statusCode = (int)HttpStatusCode.NotFound;
+                    statusCode = (int)HttpStatusCode.BadRequest;
                     break;
                 case FileNotFoundException:
                     statusCode = (int)HttpStatusCode.NotFound;

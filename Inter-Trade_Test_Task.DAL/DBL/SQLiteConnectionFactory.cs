@@ -1,4 +1,5 @@
-﻿using System.Data.SQLite;
+﻿using System.Data.Common;
+using System.Data.SQLite;
 
 namespace Inter_Trade_Test_Task.DAL.DBL
 {
@@ -9,7 +10,7 @@ namespace Inter_Trade_Test_Task.DAL.DBL
         {
             _configuration = configuration;
         }
-        public async Task<SQLiteConnection> GetConnection()
+        public async Task<DbConnection> GetConnection()
         {
             var connection = new SQLiteConnection(_configuration.GetConnectionString("DefaultConnection"));
             await connection.OpenAsync();

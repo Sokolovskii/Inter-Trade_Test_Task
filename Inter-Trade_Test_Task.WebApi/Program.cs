@@ -4,6 +4,9 @@ using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using Inter_Trade_Test_Task.DAL.DBL;
 using System.Collections;
+using Inter_Trade_Test_Task.DAL.Repository;
+using Inter_Trade_Test_Task.BL.Service;
+using Inter_Trade_Test_Task.DAL.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,8 +16,11 @@ builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 
 builder.Configuration.AddJsonFile("appsettings.json");
-builder.Services.AddScoped<IDbConnnectionFactory, SQLiteConnectionFactory>();
-APIRegistrator.RegisterEntitiesDI(builder, null, "Inter_Trade_Test_Task.DAL.Models");
+builder.Services.AddSingleton<IDbConnnectionFactory, SQLiteConnectionFactory>();
+
+//APIRegistrator.RegisterEntitiesDI(builder, null, "Inter_Trade_Test_Task.DAL.Models");
+builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(AsyncRepository<>));
+builder.Services.AddScoped(typeof(IService<>),typeof(Service<>));
 
 var app = builder.Build();
 
@@ -29,6 +35,13 @@ if (app.Environment.IsDevelopment())
         //options.RoutePrefix = string.Empty; // Устанавливает Swagger UI в корневом URL
     });
 }
+
+var service = (SQLiteConnectionFactory)app.Services.GetRequiredService<IDbConnnectionFactory>();
+var tableBuilder = new TablesBuilder(service);
+tableBuilder.CreateTableIfNotExcists<School>();
+tableBuilder.CreateTableIfNotExcists<Class>();
+tableBuilder.CreateTableIfNotExcists<Student>();
+
 app.UseMiddleware<ErrorHandleMiddleware>();
 app.UseHttpsRedirection();
 

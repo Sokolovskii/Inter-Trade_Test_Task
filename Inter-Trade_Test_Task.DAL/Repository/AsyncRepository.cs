@@ -1,5 +1,6 @@
 ﻿using Inter_Trade_Test_Task.DAL.DBL;
 using Inter_Trade_Test_Task.DAL.Models;
+using Microsoft.Data.SqlClient;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
@@ -16,7 +17,6 @@ namespace Inter_Trade_Test_Task.DAL.Repository
         public AsyncRepository(IDbConnnectionFactory dbConnnectionFactory)
         {
             _dbConnnectionFactory = dbConnnectionFactory;
-            CreateDatabaseIfNotExist();
         }
         public async Task InsertAsync(TEntity dto, CancellationToken ct = default)
         {
@@ -25,7 +25,7 @@ namespace Inter_Trade_Test_Task.DAL.Repository
             var columnDefs = new List<string>();
 
             await using (var connection = await _dbConnnectionFactory.GetConnection())
-            using (var command = new SQLiteCommand(connection))
+            using (var command = new SQLiteCommand((SQLiteConnection)connection))
             {
                 var props = type.GetProperties().Where(e => e.GetCustomAttribute<KeyAttribute>() == null);
                 ;
@@ -40,7 +40,6 @@ namespace Inter_Trade_Test_Task.DAL.Repository
 
                 command.CommandText = $"INSERT INTO {tableAttr.Name} ({string.Join(',', columnDefs)}) VALUES({string.Join(',', columnDefs.Select(e => $"@{e}"))})";
                 await command.ExecuteNonQueryAsync(ct);
-                await connection.CloseAsync();
             }
                 
         }
@@ -58,13 +57,13 @@ namespace Inter_Trade_Test_Task.DAL.Repository
             var result = new List<TEntity>();
 
             await using (var connection = await _dbConnnectionFactory.GetConnection())
-            using (var command = new SQLiteCommand(connection))
+            using (var command = new SQLiteCommand((SQLiteConnection)connection))
             {
                 command.CommandText = $"SELECT * FROM {tableAttr.Name}";
 
                 await using(var reader = await command.ExecuteReaderAsync(ct))
                 {
-                    if(await reader.ReadAsync())
+                    while(await reader.ReadAsync())
                     {
                         var entity = new TEntity();
 
@@ -93,7 +92,7 @@ namespace Inter_Trade_Test_Task.DAL.Repository
             string keyColumnName = props.FirstOrDefault(e => e.GetCustomAttribute<KeyAttribute>() != null)?.GetCustomAttribute<ColumnAttribute>()?.Name ?? "Id";
 
             await using (var connection = await _dbConnnectionFactory.GetConnection())
-            using (var command = new SQLiteCommand(connection))
+            using (var command = new SQLiteCommand((SQLiteConnection)connection))
             {
                 command.CommandText = $"SELECT * FROM {tableAttr.Name} WHERE {keyColumnName} = @key";
                 command.Parameters.AddWithValue("@key", id);
@@ -130,7 +129,7 @@ namespace Inter_Trade_Test_Task.DAL.Repository
             string keyColumnName = props.FirstOrDefault(e => e.GetCustomAttribute<KeyAttribute>() != null)?.GetCustomAttribute<ColumnAttribute>()?.Name ?? "Id";
 
             await using (var connection = await _dbConnnectionFactory.GetConnection())
-            using (var command = new SQLiteCommand(connection))
+            using (var command = new SqlCommand("", (SqlConnection)connection))
             {
                 command.CommandText = $"DELETE FROM {tableAttr.Name} WHERE {keyColumnName} = @key";
                 command.Parameters.AddWithValue("@key", id);
@@ -152,7 +151,7 @@ namespace Inter_Trade_Test_Task.DAL.Repository
             var setList = new List<string>();
 
             await using (var connection = await _dbConnnectionFactory.GetConnection())
-            using (var command = new SQLiteCommand(connection))
+            using (var command = new SQLiteCommand((SQLiteConnection)connection))
             {
 
                 foreach (var prop in props)
@@ -169,54 +168,6 @@ namespace Inter_Trade_Test_Task.DAL.Repository
                 }
                 command.CommandText = $"UPDATE {tableAttr.Name} SET {string.Join(',', setList)} WHERE {keyColumnName} = {keyValue}";
                 await command.ExecuteNonQueryAsync(ct);
-            }
-        }
-
-        private async void CreateDatabaseIfNotExist()
-        {
-            using (var connection = await _dbConnnectionFactory.GetConnection())
-            using (var command = new SQLiteCommand(connection))
-            {
-                if (await IsTableExists()) return;
-                var type = typeof(TEntity);
-                var tableAttr = type.GetCustomAttribute<TableAttribute>();
-                var props = type.GetProperties();
-                
-                var columnDefs = new List<string>();
-                var foreignKeyAttrs = new List<string>();
-                foreach(var prop in props)
-                {
-                    var columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
-                    if(prop.GetCustomAttribute<ForeignKeyAttribute>() != null) 
-                        foreignKeyAttrs.Add($"FOREIGN KEY ({columnAttr.Name}) REFERENCES {prop.GetCustomAttribute<ForeignKeyAttribute>()?.Name}(Id)");
-                    var typeName = columnAttr?.TypeName;
-
-                    var isNullable = prop.GetCustomAttribute<RequiredAttribute>() == null;
-
-                    var def = $"[{columnAttr.Name}] {typeName}";
-                    if (!isNullable) def += " NOT NULL";
-                    columnDefs.Add(def);
-                }
-
-                command.CommandText = $"CREATE TABLE [{tableAttr.Name}] (\n{string.Join(",\n", columnDefs)}\n";
-                if (foreignKeyAttrs.Count > 0) command.CommandText += ",\n" + string.Join(",\n", foreignKeyAttrs);
-                command.CommandText += "\n)";
-                await command.ExecuteNonQueryAsync();
-            }
-        }
-
-        private async Task<bool> IsTableExists()
-        {
-            using (var connection = await _dbConnnectionFactory.GetConnection())
-            using (var command = new SQLiteCommand(connection))
-            {
-                var type = typeof(TEntity);
-                var tableAttr = type.GetCustomAttribute<TableAttribute>();
-                command.CommandText = @"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name = @tableName";
-                command.Parameters.AddWithValue("@tableName", tableAttr.Name);
-
-                var result = await command.ExecuteScalarAsync();
-                return Convert.ToInt32(result) > 0;
             }
         }
     }
